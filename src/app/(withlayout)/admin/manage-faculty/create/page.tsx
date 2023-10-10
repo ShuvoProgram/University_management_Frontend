@@ -1,5 +1,7 @@
 "use client";
 
+import ACDepartmentField from "@/components/form/ACDepartmentField";
+import ACFacultyField from "@/components/form/ACFacultyField";
 import Form from "@/components/form/Form";
 import FormDatePicker from "@/components/form/FormDatePicker";
 import FormInput from "@/components/form/FormInput";
@@ -8,33 +10,32 @@ import FormTextArea from "@/components/form/FormTextArea";
 import UMBreadCrumb from "@/components/ui/UMBreadCrumb";
 import UploadImage from "@/components/ui/UploadImage";
 import { bloodGroupOptions, genderOptions } from "@/constants/global";
-import { Button, Col, Row } from "antd";
+import { useAddFacultyWithFormDataMutation } from "@/redux/api/facultyApi";
+import { Button, Col, Row, message } from "antd";
 
 const CreateFacultyPage = () => {
-    const departmentOptions = [
-        {
-            label: "HR",
-            value: "hr",
-        },
-        {
-            label: "Finance",
-            value: "finance",
-        },
-        {
-            label: "Management",
-            value: "Management",
-        },
-    ];
+    const [addFacultyWithFormData] = useAddFacultyWithFormDataMutation();
 
-    const adminOnSubmit = async (data: any) => {
+    const adminOnSubmit = async (values: any) => {
+        const obj = { ...values };
+        const file = obj["file"];
+        delete obj["file"];
+        const data = JSON.stringify(obj);
+        const formData = new FormData();
+        formData.append("file", file as Blob);
+        formData.append("data", data);
+        message.loading("Creating...");
         try {
-            console.log(data);
+            const res = await addFacultyWithFormData(formData);
+            if (!!res) {
+                message.success("Faculty created successfully!");
+            }
         } catch (err: any) {
             console.error(err.message);
         }
     };
 
-    const base = "super_admin";
+    const base = "admin";
     return (
         <>
             <UMBreadCrumb
@@ -100,18 +101,17 @@ const CreateFacultyPage = () => {
                         </Col>
 
                         <Col span={8} style={{ margin: "10px 0" }}>
-                            <FormSelectField
+                            <ACFacultyField
                                 name="faculty.academicFaculty"
                                 label="Academic Faculty"
-                                options={departmentOptions}
                             />
                         </Col>
                         <Col span={8} style={{ margin: "10px 0" }}>
-                            <FormSelectField
+                            <ACDepartmentField
                                 name="faculty.academicDepartment"
-                                label="Academic Department"
-                                options={departmentOptions}
-                            />
+                                label="Academic Department" onChange={function (e: any): void {
+                                    throw new Error("Function not implemented.");
+                                }} />
                         </Col>
 
                         <Col span={8} style={{ margin: "10px 0" }}>
